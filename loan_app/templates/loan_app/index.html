@@ -1,0 +1,94 @@
+{% extends "loan_app/base.html" %}
+{% block title %}Loan Predictor - Get Instant Approval Status{% endblock %}
+
+{% block content %}
+<h2 class="mb-4 text-center">Check Your Loan Eligibility</h2>
+
+<form method="POST" action="{% url 'predict' %}" class="row g-3 shadow p-4 rounded bg-white">
+    {% csrf_token %}
+
+    <!-- User Inputs -->
+    <div class="col-md-6">
+        <label>Annual Income (₹):</label>
+        <input type="number" name="annual_income" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+        <label>Credit Score:</label>
+        <input type="number" name="credit_score" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+        <label>Loan Amount (₹):</label>
+        <input type="number" name="loan_amount" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+        <label>Loan Tenure (Months):</label>
+        <input type="number" name="loan_tenure" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+        <label>Monthly Expenses (₹):</label>
+        <input type="number" name="monthly_expenses" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+        <label>Age:</label>
+        <input type="number" name="age" class="form-control" required>
+    </div>
+    <div class="col-md-6">
+        <label>Existing Loans:</label>
+        <input type="number" name="existing_loans" class="form-control" required>
+    </div>
+
+    <!-- Drop-downs -->
+    <div class="col-md-6">
+        <label>Employment Status:</label>
+        <select class="form-select" name="employment_employed">
+            <option value="1">Employed</option>
+            <option value="0">Not Employed</option>
+        </select>
+        <input type="hidden" name="employment_self" value="0">
+    </div>
+
+    <div class="col-md-6">
+        <label>Residence Type:</label>
+        <select class="form-select" name="residence_owned">
+            <option value="1">Owned</option>
+            <option value="0">Rented</option>
+        </select>
+        <input type="hidden" name="residence_rented" value="1">
+    </div>
+
+    <div class="col-md-6">
+        <label>Loan Purpose:</label>
+        <select class="form-select" name="purpose_edu">
+            <option value="1">Education</option>
+            <option value="0">Other</option>
+        </select>
+        <input type="hidden" name="purpose_home" value="0">
+        <input type="hidden" name="purpose_medical" value="0">
+        <input type="hidden" name="purpose_wedding" value="0">
+    </div>
+
+    <div class="col-md-6">
+        <label>Marital Status:</label>
+        <select class="form-select" name="married">
+            <option value="1">Married</option>
+            <option value="0">Single</option>
+        </select>
+        <input type="hidden" name="single" value="1">
+    </div>
+
+    <div class="col-12 text-center">
+        <button type="submit" class="btn btn-primary px-5 py-2">Predict Now</button>
+    </div>
+</form>
+
+{% if prediction == 1 %}
+  <div class="mt-5 alert alert-success text-center">
+    <h4>✅ Loan Approved</h4>
+  </div>
+{% elif prediction == 0 %}
+  <div class="mt-5 alert alert-danger text-center">
+    <h4>❌ Loan Not Approved</h4>
+  </div>
+{% endif %}
+
+{% endblock %}

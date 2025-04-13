@@ -1,0 +1,178 @@
+from pathlib import Path
+
+# Define full insights.html content
+insights_html_content = """{% extends "loan_app/base.html" %}
+{% load static %}
+{% block title %}Model Insights - Neural Network{% endblock %}
+
+{% block content %}
+<h2 class="text-center mb-4">🧠 Neural Network Flow (Live Simulation)</h2>
+
+<div style="overflow-x: auto; border: 2px solid #ccc; padding: 20px; border-radius: 10px;">
+  <svg width="3300" height="1000">
+    <style>
+      .neuron {
+        stroke: #333;
+        stroke-width: 0.8;
+      }
+
+      .input { fill: #3498db; }
+      .hidden1 { fill: #2ecc71; }
+      .hidden2 { fill: #f1c40f; }
+      .hidden3 { fill: #e67e22; }
+      .output { fill: #e74c3c; }
+      .bias { fill: #9b59b6; }
+
+      .layer-label {
+        font-size: 15px;
+        fill: #222;
+        font-weight: bold;
+      }
+
+      .activation-label {
+        font-size: 13px;
+        fill: #555;
+        font-style: italic;
+      }
+
+      .flow {
+        stroke: rgba(0, 0, 0, 0.2);
+        stroke-width: 0.4;
+        stroke-dasharray: 4;
+        animation: dash 2s linear infinite;
+        marker-end: url(#arrow);
+      }
+
+      @keyframes dash {
+        to {
+          stroke-dashoffset: -100;
+        }
+      }
+
+      .pulse-dot {
+        fill: #00f;
+        r: 4;
+        opacity: 0.8;
+        animation: moveDot 4s linear infinite;
+      }
+
+      @keyframes moveDot {
+        0%   { transform: translate(0, 0); opacity: 0.2; }
+        50%  { opacity: 1; }
+        100% { transform: translate(2600px, 0); opacity: 0; }
+      }
+    </style>
+
+    <defs>
+      <marker id="arrow" markerWidth="10" markerHeight="10" refX="10" refY="3" orient="auto" markerUnits="strokeWidth">
+        <path d="M0,0 L0,6 L9,3 z" fill="#888"/>
+      </marker>
+    </defs>
+
+    <g id="network"></g>
+    <circle class="pulse-dot" cx="50" cy="500"></circle>
+  </svg>
+</div>
+
+<script>
+  const layers = [
+    { count: 17, class: 'input', label: "Input", activation: "None" },
+    { count: 64, class: 'hidden1', label: "Hidden 1", activation: "ReLU" },
+    { count: 32, class: 'hidden2', label: "Hidden 2", activation: "ReLU" },
+    { count: 16, class: 'hidden3', label: "Hidden 3", activation: "ReLU" },
+    { count: 1, class: 'output', label: "Output", activation: "Sigmoid" }
+  ];
+
+  const svgNS = "http://www.w3.org/2000/svg";
+  const spacingX = 500;
+  const spacingY = 18;
+  const group = document.getElementById("network");
+  const pos = [];
+
+  layers.forEach((layer, idx) => {
+    const neurons = [];
+    const x = 100 + idx * spacingX;
+    const yOffset = (1000 - layer.count * spacingY) / 2;
+
+    for (let j = 0; j < layer.count; j++) {
+      const y = yOffset + j * spacingY;
+      const circle = document.createElementNS(svgNS, "circle");
+      circle.setAttribute("cx", x);
+      circle.setAttribute("cy", y);
+      circle.setAttribute("r", 7);
+      circle.setAttribute("class", `neuron ${layer.class}`);
+      group.appendChild(circle);
+      neurons.push({ x, y });
+    }
+
+    // Bias
+    if (idx < layers.length - 1) {
+      const bias = document.createElementNS(svgNS, "circle");
+      bias.setAttribute("cx", x);
+      bias.setAttribute("cy", 30);
+      bias.setAttribute("r", 6);
+      bias.setAttribute("class", "neuron bias");
+      group.appendChild(bias);
+      neurons.push({ x, y: 30 });
+    }
+
+    const label = document.createElementNS(svgNS, "text");
+    label.setAttribute("x", x);
+    label.setAttribute("y", 980);
+    label.setAttribute("text-anchor", "middle");
+    label.setAttribute("class", "layer-label");
+    label.textContent = layer.label;
+    group.appendChild(label);
+
+    const act = document.createElementNS(svgNS, "text");
+    act.setAttribute("x", x);
+    act.setAttribute("y", 995);
+    act.setAttribute("text-anchor", "middle");
+    act.setAttribute("class", "activation-label");
+    act.textContent = `Activation: ${layer.activation}`;
+    group.appendChild(act);
+
+    pos.push(neurons);
+  });
+
+  for (let i = 0; i < pos.length - 1; i++) {
+    for (let from of pos[i]) {
+      for (let to of pos[i + 1]) {
+        const line = document.createElementNS(svgNS, "line");
+        line.setAttribute("x1", from.x);
+        line.setAttribute("y1", from.y);
+        line.setAttribute("x2", to.x);
+        line.setAttribute("y2", to.y);
+        line.setAttribute("class", "flow");
+        group.appendChild(line);
+      }
+    }
+  }
+</script>
+
+<div class="col-12 mt-5">
+  <div class="card shadow-sm">
+    <div class="card-body">
+      <h5 class="card-title text-center">📋 Model Summary</h5>
+      <ul class="list-group list-group-flush">
+        <li class="list-group-item">✅ 3 Hidden Layers: <strong>64 → 32 → 16</strong></li>
+        <li class="list-group-item">⚙️ Activation Functions: <strong>ReLU in hidden layers, Sigmoid in output</strong></li>
+        <li class="list-group-item">📦 Loss Function: <strong>Binary Crossentropy</strong></li>
+        <li class="list-group-item">📊 Optimizer: <strong>Adam</strong></li>
+        <li class="list-group-item">📈 Epochs Trained: <strong>50</strong></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<div class="text-center mt-4">
+  <a href="{% url 'index' %}" class="btn btn-outline-primary">← Back to Prediction</a>
+</div>
+{% endblock %}
+"""
+
+# Save to a file
+file_path = Path("/mnt/data/insights.html")
+file_path.write_text(insights_html_content)
+
+file_path.name
