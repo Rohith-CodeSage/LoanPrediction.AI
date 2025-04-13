@@ -1,3 +1,4 @@
+
 import pandas as pd
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
@@ -11,6 +12,28 @@ import os
 
 # Load dataset
 df = pd.read_csv('loan_app/ml_model/personal_loan_dataset_updated.csv')
+
+# Apply custom logic to boost approvals
+def apply_custom_weights(row):
+    score = 0
+    if 25 <= row['Age'] <= 60:
+        score += 1
+    if row['Credit Score'] > 700:
+        score += 1
+    if row['Employment_employed'] == 1:
+        score += 1
+    if row['Residence_owned'] == 1:
+        score += 1
+    if row['Existing Loans'] <= row['Annual Income'] * 0.4:
+        score += 1
+    if row['Existing Loans'] <= row['Monthly Expenses'] * 12:
+        score += 1
+    return score
+
+df['ApprovalBoost'] = df.apply(apply_custom_weights, axis=1)
+df.loc[(df['Loan Approved'] == 0) & (df['ApprovalBoost'] >= 4), 'Loan Approved'] = 1
+df.drop('ApprovalBoost', axis=1, inplace=True)
+
 X = df.drop('Loan Approved', axis=1)
 y = df['Loan Approved']
 
